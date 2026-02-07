@@ -45,6 +45,7 @@ button{
   cursor:pointer;
 }
 button.secondary{background:#6b7280}
+button:disabled{opacity:0.65;cursor:not-allowed}
 .quiz{margin:16px 0;padding:12px;border-radius:8px;background:#f8fafc}
 .status{font-size:0.9rem;color:var(--muted);margin-bottom:8px}
 .question{font-weight:600;font-size:1.2rem;margin-bottom:8px}

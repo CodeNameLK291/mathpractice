@@ -122,6 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			nextBtn.disabled = true;
 			feedbackEl.textContent = '';
 			answerEl.focus();
+			updateButtonStyles();
 		}
 
 		function start(){
@@ -152,12 +153,22 @@ document.addEventListener('DOMContentLoaded', () => {
 			}
 			submitBtn.disabled = true;
 			nextBtn.disabled = false;
+			updateButtonStyles();
 			render();
 		}
 
 		function next(){
 			idx++;
 			render();
+			updateButtonStyles();
+		}
+
+		function updateButtonStyles(){
+			if(!submitBtn || !nextBtn) return;
+			// submit: enabled -> blue (no secondary), disabled -> gray (secondary)
+			if(submitBtn.disabled) submitBtn.classList.add('secondary'); else submitBtn.classList.remove('secondary');
+			// next: enabled -> blue, disabled -> gray
+			if(nextBtn.disabled) nextBtn.classList.add('secondary'); else nextBtn.classList.remove('secondary');
 		}
 
 		// 캐시된 모두보기 목록 (생성 후 재사용)
