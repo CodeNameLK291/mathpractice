@@ -265,6 +265,10 @@ document.addEventListener('DOMContentLoaded', () => {
 		// bind show-all button to display all generated problems
 		if (showAllBtn) showAllBtn.addEventListener('click', showAll);
 
+		// bind submit/next buttons
+		if (submitBtn) submitBtn.addEventListener('click', submitAnswer);
+		if (nextBtn) nextBtn.addEventListener('click', next);
+
 		// Guard: if key UI elements are missing, warn and stop to avoid silent no-op
 		if (!el('start') || !el('answer') || !el('question')) {
 			console.warn('app.js: required UI elements missing (start/answer/question). Verify IDs in index.html or script placement.');
