@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			const interactiveControls = document.querySelector('.controls.interactive-controls');
 			const printControls = document.querySelector('.controls.print-controls');
 			if(m === 'print'){
+				activeMode = 'print';
 				if(interactiveControls) interactiveControls.style.display = 'none';
 				if(printControls) printControls.style.display = 'flex';
 				// hide the quiz UI (interactive) but keep all-questions visible
@@ -31,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
 				modePrintBtn.classList.add('active'); modePrintBtn.setAttribute('aria-pressed','true');
 				modeInteractiveBtn.classList.remove('active'); modeInteractiveBtn.setAttribute('aria-pressed','false');
 			} else {
+				activeMode = 'interactive';
 				if(interactiveControls) interactiveControls.style.display = '';
 				if(printControls) printControls.style.display = 'none';
 				// show interactive UI
@@ -43,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		}
 
 		let questions = [], idx = 0, stats = {correct:0, wrong:0};
+		let activeMode = 'interactive'; // 'interactive' | 'print'
 
 		function randInt(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
 
@@ -95,7 +98,24 @@ document.addEventListener('DOMContentLoaded', () => {
 				return;
 			}
 			statusEl.textContent = `문제 ${idx+1} / ${questions.length}`;
-			questionEl.textContent = questions[idx].q;
+			// render question differently when in interactive mode: default to vertical layout
+			if(activeMode === 'interactive'){
+				// always prefer vertical for interactive per user request
+				const it = questions[idx];
+				const m = it.q.match(/^(.+)\s*([\+\-\×\÷])\s*(.+)$/);
+				if(m){
+					const a = m[1].trim(), op = m[2].trim(), b = m[3].trim();
+					questionEl.innerHTML = `<div class="prob vertical">
+						<div class="op-a">${a}</div>
+						<div class="op-b"><span class="op-symbol">${op}</span><span class="op-num">${b}</span></div>
+						<div class="rule"></div>
+					</div>`;
+				} else {
+					questionEl.textContent = questions[idx].q;
+				}
+			} else {
+				questionEl.textContent = questions[idx].q;
+			}
 			answerEl.value = '';
 			answerEl.disabled = false;
 			submitBtn.disabled = false;
