@@ -18,7 +18,8 @@
 			<button id="mode-print" class="mode-btn" role="tab" aria-pressed="false">프린트용</button>
 		</nav>
 
-		<section class="controls">
+		<!-- Interactive controls (visible in 인터랙티브 모드) -->
+		<section class="controls interactive-controls">
 			<div class="row">
 				<label>연산:</label>
 				<div class="ops">
@@ -31,13 +32,13 @@
 				<label>최대값: <input id="max" type="number" value="10" /></label>
 				<label>문제 수: <input id="count" type="number" value="10" min="1" max="100" /></label>
 				<label style="display:flex;align-items:center;gap:6px"><input id="allow-negative" type="checkbox"> 음수 허용</label>
-				<label>문제 표시:
-					<select id="layout">
-						<option value="vertical">세로형</option>
-						<option value="horizontal">가로형</option>
-					</select>
-				</label>
 				<button id="start">시작</button>
+			</div>
+		</section>
+
+		<!-- Print controls (visible in 프린트용 모드) -->
+		<section class="controls print-controls" style="display:none;">
+			<div class="row">
 				<button id="show-all">모두보기</button>
 				<label style="display:flex;align-items:center;gap:6px"><input id="show-answers" type="checkbox"> 정답보기</label>
 				<button id="print-all">인쇄</button>
@@ -48,6 +49,12 @@
 				    <option value="3">3열</option>
 				    <option value="4">4열</option>
 				  </select>
+				</label>
+				<label>문제 표시:
+					<select id="layout">
+						<option value="vertical">세로형</option>
+						<option value="horizontal">가로형</option>
+					</select>
 				</label>
 			</div>
 		</section>

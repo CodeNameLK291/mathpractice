@@ -17,9 +17,12 @@ document.addEventListener('DOMContentLoaded', () => {
 		const modeInteractiveBtn = el('mode-interactive'), modePrintBtn = el('mode-print');
 
 		function setMode(m){
+			const interactiveControls = document.querySelector('.controls.interactive-controls');
+			const printControls = document.querySelector('.controls.print-controls');
 			if(m === 'print'){
-				// hide interactive UI
-				document.querySelector('.controls').style.display = 'none';
+				if(interactiveControls) interactiveControls.style.display = 'none';
+				if(printControls) printControls.style.display = '';
+				// hide the quiz UI (interactive) but keep all-questions visible
 				document.querySelector('.quiz').style.display = 'none';
 				document.querySelector('.scoreboard').style.display = 'none';
 				// ensure all-questions shown and generated
@@ -28,8 +31,9 @@ document.addEventListener('DOMContentLoaded', () => {
 				modePrintBtn.classList.add('active'); modePrintBtn.setAttribute('aria-pressed','true');
 				modeInteractiveBtn.classList.remove('active'); modeInteractiveBtn.setAttribute('aria-pressed','false');
 			} else {
-				// interactive mode
-				document.querySelector('.controls').style.display = '';
+				if(interactiveControls) interactiveControls.style.display = '';
+				if(printControls) printControls.style.display = 'none';
+				// show interactive UI
 				document.querySelector('.quiz').style.display = '';
 				document.querySelector('.scoreboard').style.display = '';
 				allSectionEl.style.display = 'none';
