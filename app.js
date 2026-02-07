@@ -1,4 +1,5 @@
 // Ensure the script runs after the DOM is ready and fail fast if critical elements are missing
+
 document.addEventListener('DOMContentLoaded', () => {
 	// 간단한 산수 문제 생성기 및 진행 로직
 	(() => {
@@ -27,9 +28,15 @@ document.addEventListener('DOMContentLoaded', () => {
 				// hide the quiz UI (interactive) but keep all-questions visible
 				document.querySelector('.quiz').style.display = 'none';
 				document.querySelector('.scoreboard').style.display = 'none';
-				// ensure all-questions shown and generated
+				// ensure all-questions shown and generated (print view must NOT include answers or wrong-list)
 				showAll();
+				if(cachedAllList) renderAll(cachedAllList, false); // force hide answers in print
 				allSectionEl.style.display = 'block';
+				// hide wrong/results section for print
+				if(resultsSection) resultsSection.style.display = 'none';
+				if(wrongListEl) wrongListEl.style.display = 'none';
+				// hide the show-answers checkbox control in print mode
+				if(showAnswersChk) showAnswersChk.style.display = 'none';
 				modePrintBtn.classList.add('active'); modePrintBtn.setAttribute('aria-pressed','true');
 				modeInteractiveBtn.classList.remove('active'); modeInteractiveBtn.setAttribute('aria-pressed','false');
 			} else {
@@ -42,6 +49,10 @@ document.addEventListener('DOMContentLoaded', () => {
 				allSectionEl.style.display = 'none';
 				modeInteractiveBtn.classList.add('active'); modeInteractiveBtn.setAttribute('aria-pressed','true');
 				modePrintBtn.classList.remove('active'); modePrintBtn.setAttribute('aria-pressed','false');
+				// restore show-answers control visibility
+				if(showAnswersChk) showAnswersChk.style.display = '';
+				if(resultsSection) resultsSection.style.display = 'none';
+				if(wrongListEl) wrongListEl.style.display = '';
 			}
 		}
 
@@ -203,21 +214,19 @@ document.addEventListener('DOMContentLoaded', () => {
 				let s = '';
 				for(let p = maxPos; p >= 0; p--){ s += (digitsByPos[p] || '0'); }
 				user = Number(s);
-				if(isNaN(user)) { feedbackEl.textContent = '숫자를 입력해 주세요.'; return false; }
+				if(isNaN(user)) { return false; }
 				// For columnar problems we do not simply compare whole number; prefer column validation
 				// Fallback: allow full-number check as final guard
 				isCorrect = Math.abs(user - real) < 1e-9;
 			} else {
 				const userRaw = answerEl.value.trim();
-				if(userRaw === '') { feedbackEl.textContent = '답을 입력해 주세요.'; return false; }
+				if(userRaw === '') { return false; }
 				user = Number(userRaw);
 				isCorrect = Math.abs(user - real) < 1e-9;
 			}
 			if(isCorrect){
-				feedbackEl.textContent = '정답!';
 				stats.correct++;
 			} else {
-				feedbackEl.textContent = `오답. 정답: ${real}`;
 				stats.wrong++;
 				// record wrong item
 				wrongList.push({ index: idx+1, q: questions[idx].q, user: user, real: real });
@@ -261,38 +270,39 @@ document.addEventListener('DOMContentLoaded', () => {
 				const ansInput = questionEl.querySelector(`input[data-role="ans"][data-pos="${pos}"]`);
 				const userCarryIn = pos===0?0: Number((carryInInput && carryInInput.value.trim())||'0');
 				const userAns = Number((ansInput && ansInput.value.trim())||'');
-				if(Number.isNaN(userAns)) { feedbackEl.textContent = '자리 답을 입력해 주세요.'; return false; }
+				if(Number.isNaN(userAns)) { return false; }
 				const a = getDigit(aDigitsArr,posFromRight), b = getDigit(bDigitsArr,posFromRight);
 				const sum = a + b + userCarryIn;
 				const expectedAns = sum % 10;
 				const expectedCarryOut = Math.floor(sum/10);
-				if(userAns !== expectedAns){ feedbackEl.textContent = `자리 ${pos}의 결과가 틀렸습니다 (기대 ${expectedAns}).`; ansInput.parentElement.classList.add('wrong'); return false; }
+				if(userAns !== expectedAns){ ansInput.parentElement.classList.add('wrong'); return false; }
 				// mark correct ans
 				ansInput.parentElement.classList.remove('wrong'); ansInput.parentElement.classList.add('correct');
 				// now check next column's carry_in if exists (user must enter carry somewhere else)
 				const nextCarry = questionEl.querySelector(`input[data-role="carry"][data-pos="${pos+1}"]`);
 				if(nextCarry){
 					const userNextCarry = Number((nextCarry.value.trim())||'0');
-					if(userNextCarry !== expectedCarryOut){ feedbackEl.textContent = `다음 자리의 올림이 틀렸습니다 (기대 ${expectedCarryOut}).`; nextCarry.parentElement.classList.add('wrong'); return false; }
+					if(userNextCarry !== expectedCarryOut){ nextCarry.parentElement.classList.add('wrong'); return false; }
 					nextCarry.parentElement.classList.remove('wrong'); nextCarry.parentElement.classList.add('correct');
 				}
-				feedbackEl.textContent = '';
+                
 				return true;
 			} else if(op === '-'){
 				const borrowInput = questionEl.querySelector(`input[data-role="carry"][data-pos="${pos}"]`);
 				const ansInput = questionEl.querySelector(`input[data-role="ans"][data-pos="${pos}"]`);
-				const userBorrow = Number((borrowInput && borrowInput.value.trim())||'0');
+				const userBorrow = (borrowInput && borrowInput.value.trim() === '10') ? 1 : 0;
 				const userAns = Number((ansInput && ansInput.value.trim())||'');
-				if(Number.isNaN(userAns)) { feedbackEl.textContent = '자리 답을 입력해 주세요.'; return false; }
+				if(Number.isNaN(userAns)) { return false; }
 				const a = getDigit(aDigitsArr,posFromRight), b = getDigit(bDigitsArr,posFromRight);
 				// borrow semantics: if userBorrow is 1, that means they borrow from next higher digit
-				const prevBorrow = pos===0?0: Number((questionEl.querySelector(`input[data-role="carry"][data-pos="${pos-1}"]`)||{value:'0'}).value.trim() || '0');
+				const prevRaw = pos===0? '0' : ((questionEl.querySelector(`input[data-role="carry"][data-pos="${pos-1}"]`)||{value:'0'}).value.trim() || '0');
+				const prevBorrow = (prevRaw === '10') ? 1 : 0;
 				const a_eff = a - prevBorrow;
-				const a_eff2 = a_eff + (userBorrow?10:0);
+				const a_eff2 = a_eff + (userBorrow ? 10 : 0);
 				const expectedAns = a_eff2 - b;
-				if(userAns !== expectedAns){ feedbackEl.textContent = `자리 ${pos}의 결과가 틀렸습니다 (기대 ${expectedAns}).`; ansInput.parentElement.classList.add('wrong'); return false; }
+				if(userAns !== expectedAns){ ansInput.parentElement.classList.add('wrong'); return false; }
 				ansInput.parentElement.classList.remove('wrong'); ansInput.parentElement.classList.add('correct');
-				feedbackEl.textContent = '';
+                
 				return true;
 			}
 			return false;
@@ -304,7 +314,6 @@ document.addEventListener('DOMContentLoaded', () => {
 			else {
 				// finished columns
 				answered[idx] = true;
-				feedbackEl.textContent = '모든 자리 정답입니다.';
 				// update stats and buttons
 				stats.correct++;
 				const lastIndex = Math.max(0, questions.length - 1);
@@ -326,18 +335,30 @@ document.addEventListener('DOMContentLoaded', () => {
 					<button class="key">7</button><button class="key">8</button><button class="key">9</button>
 					<button class="key">0</button><button class="key">↺</button><button class="key">✕</button>
 				</div>
-				<div class="controls"><button class="close-keypad">닫기</button></div>`;
+				<div class="controls"><button class="ok-keypad">확인</button><button class="close-keypad">닫기</button></div>`;
 			document.body.appendChild(kp);
+			// helper to commit current active input (validate and maybe advance)
+			function commitActiveInput(){
+				if(!activeInput) return;
+				const pos = Number(activeInput.dataset.pos || 0);
+				const op = questionEl.dataset.op || '+';
+				const ok = validateColumn(pos, op);
+				if(ok){ moveToNextColumn(op); }
+				kp.classList.remove('show'); activeInput = null;
+			}
 			kp.addEventListener('click', (e)=>{
 				const t = e.target;
-				if(!t.classList.contains('key') && !t.classList.contains('close-keypad')) return;
+				if(!t.classList.contains('key') && !t.classList.contains('close-keypad') && !t.classList.contains('ok-keypad')) return;
+				if(!activeInput){ if(t.classList.contains('close-keypad')){ kp.classList.remove('show'); } return; }
 				if(t.classList.contains('close-keypad')){ kp.classList.remove('show'); activeInput = null; return; }
+				if(t.classList.contains('ok-keypad')){ commitActiveInput(); return; }
 				const v = t.textContent.trim();
-				if(!activeInput) return;
 				if(v === '✕'){ activeInput.value = ''; activeInput.parentElement.classList.remove('correct','wrong'); return; }
 				if(v === '↺'){ activeInput.value = activeInput.value.slice(0,-1); return; }
-				// digit
-				activeInput.value = v;
+				// digit handling
+				const maxlen = Number(activeInput.dataset.maxlen) || 1;
+				if(maxlen === 1){ activeInput.value = v; commitActiveInput(); }
+				else { activeInput.value = (activeInput.value + v).slice(-maxlen); }
 			});
 		}
 
@@ -349,19 +370,26 @@ document.addEventListener('DOMContentLoaded', () => {
 			const aDigits = aStr.split('').map(d => d);
 			const bDigits = bStr.split('').map(d => d);
 			const maxLen = Math.max(aDigits.length, bDigits.length);
+			// compute sum length (BigInt-safe) and allow extra most-significant digit
+			let sumVal;
+			try { sumVal = (BigInt(aStr) + BigInt(bStr)).toString(); } catch(e) { sumVal = String(Number(aStr) + Number(bStr)); }
+			const ansLen = Math.max(maxLen, sumVal.length);
 			// build rows: carry (empty inputs), a row, b row (with +), rule, answer row (inputs)
 			let carryHtml = '<div class="digit-row digit-carry-row">';
-			for(let i=0;i<maxLen;i++) carryHtml += `<div class="digit-box"><input data-role="carry" data-pos="${i}" maxlength="1" inputmode="numeric" pattern="[0-9]" /></div>`;
+			for(let i=0;i<ansLen;i++) carryHtml += `<div class="digit-box"><input data-role="carry" data-pos="${i}" maxlength="1" inputmode="numeric" pattern="[0-9]" /></div>`;
 			carryHtml += '</div>';
 			let aHtml = '<div class="digit-row">';
+			// pad left so a row has ansLen boxes and is right-aligned
+			const lead = ansLen - maxLen;
+			for(let i=0;i<lead;i++) aHtml += `<div class="digit-box"></div>`;
 			for(let i=0;i<maxLen;i++){
-				const posFromRight = maxLen - 1 - i;
 				const d = aDigits[aDigits.length - maxLen + i] || '';
 				aHtml += `<div class="digit-box"><div class="op-num">${d}</div></div>`;
 			}
 			aHtml += '</div>';
 			let bHtml = '<div class="digit-row">';
-			// operator spacing: place + before leftmost boxes
+			// pad left so b row aligns with a and answer; then place operator before the rightmost digits
+			for(let i=0;i<lead;i++) bHtml += `<div class="digit-box"></div>`;
 			bHtml += `<div class="op-symbol">+</div>`;
 			for(let i=0;i<maxLen;i++){
 				const d = bDigits[bDigits.length - maxLen + i] || '';
@@ -370,12 +398,13 @@ document.addEventListener('DOMContentLoaded', () => {
 			bHtml += '</div>';
 			const ruleHtml = '<div class="digit-rule"></div>';
 			let ansHtml = '<div class="digit-row answer-row">';
-			for(let i=0;i<maxLen;i++){
-				const pos = maxLen - 1 - i; // pos from right
+			for(let i=0;i<ansLen;i++){
+				const pos = ansLen - 1 - i; // pos from right
 				ansHtml += `<div class="digit-box"><input data-role="ans" data-pos="${pos}" maxlength="1" inputmode="numeric" pattern="[0-9]" /></div>`;
 			}
 			ansHtml += '</div>';
 			questionEl.innerHTML = `<div class="digit-grid">${carryHtml}${aHtml}${bHtml}${ruleHtml}${ansHtml}</div>`;
+			questionEl.dataset.op = '+';
 			// add simple input handlers: allow only digits and show keypad on focus/click
 			const inputs = questionEl.querySelectorAll('input[data-role]');
 			inputs.forEach(inp => {
@@ -394,13 +423,16 @@ document.addEventListener('DOMContentLoaded', () => {
 			const aDigits = aStr.split('').map(d => d);
 			const bDigits = bStr.split('').map(d => d);
 			const maxLen = Math.max(aDigits.length, bDigits.length);
+			// borrow inputs: allow up to 2 chars (e.g., show '10') for transformed display
 			let borrowHtml = '<div class="digit-row digit-carry-row">';
-			for(let i=0;i<maxLen;i++) borrowHtml += `<div class="digit-box"><input data-role="carry" data-pos="${i}" maxlength="1" inputmode="numeric" pattern="[01]" /></div>`;
+			for(let i=0;i<maxLen;i++) borrowHtml += `<div class="digit-box"><input data-role="carry" data-pos="${i}" data-maxlen="2" maxlength="2" inputmode="numeric" pattern="[0-9]*" /></div>`;
 			borrowHtml += '</div>';
 			let aHtml = '<div class="digit-row">';
 			for(let i=0;i<maxLen;i++){
+				const posFromRight = maxLen - 1 - i;
 				const d = aDigits[aDigits.length - maxLen + i] || '';
-				aHtml += `<div class="digit-box"><div class="op-num">${d}</div></div>`;
+				// add data-role/data-pos so user can toggle struck by clicking
+				aHtml += `<div class="digit-box" data-role="top-digit" data-pos="${posFromRight}"><div class="op-num">${d}</div></div>`;
 			}
 			aHtml += '</div>';
 			let bHtml = '<div class="digit-row">';
@@ -417,13 +449,18 @@ document.addEventListener('DOMContentLoaded', () => {
 				ansHtml += `<div class="digit-box"><input data-role="ans" data-pos="${pos}" maxlength="1" inputmode="numeric" pattern="[0-9]" /></div>`;
 			}
 			ansHtml += '</div>';
+			// single innerHTML assignment (no automatic transformed hints)
 			questionEl.innerHTML = `<div class="digit-grid">${borrowHtml}${aHtml}${bHtml}${ruleHtml}${ansHtml}</div>`;
+			questionEl.dataset.op = '-';
 			const inputs = questionEl.querySelectorAll('input[data-role]');
 			inputs.forEach(inp => {
-				inp.addEventListener('input', (e) => { e.target.value = e.target.value.replace(/[^0-9]/g,'').slice(-1); });
+				inp.addEventListener('input', (e) => { e.target.value = e.target.value.replace(/[^0-9]/g,'').slice(0, Number(inp.dataset.maxlen) || 1); });
 				inp.addEventListener('focus', (e) => { showKeypadFor(e.target); e.target.select(); });
 				inp.addEventListener('click', (e) => { showKeypadFor(e.target); });
 			});
+			// allow users to toggle struck on top digits by clicking the top digit box
+			const topDigits = questionEl.querySelectorAll('.digit-box[data-role="top-digit"]');
+			topDigits.forEach(td => td.addEventListener('click', () => td.classList.toggle('struck')));
 			activeColumn = 0; setActiveColumn(0); createKeypad();
 		}
 
