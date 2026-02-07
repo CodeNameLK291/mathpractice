@@ -105,13 +105,18 @@ footer{margin-top:16px;font-size:0.8rem;color:var(--muted);text-align:center}
 
 /* 세로형 문제: 숫자와 기호 분리. 숫자는 고정폭으로 오른쪽 정렬 */
 .all-questions .prob.vertical { font-family: "Courier New", monospace; display:flex; flex-direction:column; align-items:flex-end; gap:6px; padding:6px 2px; }
-.all-questions .prob.vertical { font-family: "Courier New", monospace; display:flex; flex-direction:column; align-items:flex-end; gap:6px; padding:6px 2px; width:100%; }
-/* Responsive sizes: allow numbers to scale to fill available width on small screens.
-  Use clamp to limit the size, and ensure at least 4ch space for up to 4-digit numbers. */
-.all-questions .prob.vertical .op-a { font-size: clamp(1.1rem, 8vw, 2.4rem); text-align:right; min-width:4ch; width:100%; }
-.all-questions .prob.vertical .op-b { display:flex; align-items:baseline; justify-content:flex-end; gap:0.5rem; width:100%; }
-.all-questions .prob.vertical .op-symbol { display:inline-block; width:auto; padding-right:0.25rem; font-size: clamp(1rem, 6vw, 1.6rem); }
-.all-questions .prob.vertical .op-num { display:inline-block; min-width:4ch; text-align:right; font-size: clamp(1.1rem, 8vw, 2.4rem); font-weight:700; }
+.all-questions .prob.vertical { font-family: "Courier New", monospace; display:flex; flex-direction:column; align-items:flex-end; gap:6px; padding:6px 2px; }
+.all-questions .prob.vertical .op-a { font-size:1.1rem; text-align:right; min-width:3ch; }
+.all-questions .prob.vertical .op-b { display:flex; align-items:baseline; justify-content:flex-end; gap:0.5rem; }
+.all-questions .prob.vertical .op-symbol { display:inline-block; /* operator to the left */ width:auto; padding-right:0.25rem; }
+.all-questions .prob.vertical .op-num { display:inline-block; min-width:3ch; text-align:right; font-size:1.1rem; font-weight:600; }
+
+/* Interactive (quiz) vertical problems: responsive sizing so large numbers fit mobile */
+.quiz .prob.vertical { font-family: "Courier New", monospace; display:flex; flex-direction:column; align-items:flex-end; gap:6px; padding:6px 2px; width:100%; }
+.quiz .prob.vertical .op-a { font-size: clamp(1.2rem, 9vw, 2.8rem); text-align:right; min-width:4ch; width:100%; }
+.quiz .prob.vertical .op-b { display:flex; align-items:baseline; justify-content:flex-end; gap:0.5rem; width:100%; }
+.quiz .prob.vertical .op-symbol { display:inline-block; width:auto; padding-right:0.25rem; font-size: clamp(1rem, 6vw, 1.8rem); }
+.quiz .prob.vertical .op-num { display:inline-block; min-width:4ch; text-align:right; font-size: clamp(1.2rem, 9vw, 2.8rem); font-weight:700; }
 
 /* 룰(밑줄) 너비는 content 너비에 맞춤 */
 .all-questions .prob.vertical .rule { width:100%; border-bottom:2px solid rgba(17,24,39,0.12); margin-top:4px; }
