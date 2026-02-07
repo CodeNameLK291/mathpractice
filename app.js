@@ -14,6 +14,29 @@ document.addEventListener('DOMContentLoaded', () => {
 		const statusEl = el('status');
 		const currentEl = el('current'), totalEl = el('total'), correctEl = el('correct'), wrongEl = el('wrong');
 		const allListEl = el('allList'), allSectionEl = el('allQuestions');
+		const modeInteractiveBtn = el('mode-interactive'), modePrintBtn = el('mode-print');
+
+		function setMode(m){
+			if(m === 'print'){
+				// hide interactive UI
+				document.querySelector('.controls').style.display = 'none';
+				document.querySelector('.quiz').style.display = 'none';
+				document.querySelector('.scoreboard').style.display = 'none';
+				// ensure all-questions shown and generated
+				showAll();
+				allSectionEl.style.display = 'block';
+				modePrintBtn.classList.add('active'); modePrintBtn.setAttribute('aria-pressed','true');
+				modeInteractiveBtn.classList.remove('active'); modeInteractiveBtn.setAttribute('aria-pressed','false');
+			} else {
+				// interactive mode
+				document.querySelector('.controls').style.display = '';
+				document.querySelector('.quiz').style.display = '';
+				document.querySelector('.scoreboard').style.display = '';
+				allSectionEl.style.display = 'none';
+				modeInteractiveBtn.classList.add('active'); modeInteractiveBtn.setAttribute('aria-pressed','true');
+				modePrintBtn.classList.remove('active'); modePrintBtn.setAttribute('aria-pressed','false');
+			}
+		}
 
 		let questions = [], idx = 0, stats = {correct:0, wrong:0};
 
@@ -176,6 +199,13 @@ document.addEventListener('DOMContentLoaded', () => {
 			}
 			window.print();
 		});
+
+		// Mode tab events
+		if(modeInteractiveBtn) modeInteractiveBtn.addEventListener('click', () => setMode('interactive'));
+		if(modePrintBtn) modePrintBtn.addEventListener('click', () => setMode('print'));
+
+		// set default mode: interactive (mobile-friendly)
+		setMode('interactive');
 		// printCols 변경 시 미리보기 반영
 		if(printColsEl) printColsEl.addEventListener('change', () => {
 			const wrap = allListEl.querySelector('.all-list-wrap');

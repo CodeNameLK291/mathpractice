@@ -19,6 +19,10 @@ body{
   border-radius:10px;
   box-shadow:0 6px 18px rgba(15,23,42,0.08);
 }
+/* Mode tabs */
+.mode-tabs{display:flex;gap:8px;margin:12px 0 6px}
+.mode-tabs .mode-btn{padding:8px 12px;border-radius:8px;background:transparent;border:1px solid #e6eef8;color:var(--muted);cursor:pointer}
+.mode-tabs .mode-btn.active{background:var(--accent);color:#fff;border-color:transparent}
 header h1{margin:0 0 12px;font-size:1.4rem}
 .controls .row{
   display:flex;
@@ -63,12 +67,11 @@ footer{margin-top:16px;font-size:0.8rem;color:var(--muted);text-align:center}
 
 /* 모두보기: 그리드 기본 (항상 그리드) */
 .all-questions .all-list-wrap {
-  --cols: 2;
-  --print-cols: 1;
+  --print-cols: 2;
 }
 .all-questions .all-list-wrap ol.grid {
   display:grid;
-  grid-template-columns: repeat(var(--cols), 1fr);
+  grid-template-columns: repeat(var(--print-cols), 1fr);
   gap:12px;
   list-style: none;
   padding:0;
