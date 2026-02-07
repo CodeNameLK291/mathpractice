@@ -362,7 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			});
 		}
 
-		function showKeypadFor(inp){ createKeypad(); const kp = document.querySelector('.num-keypad'); activeInput = inp; kp.classList.add('show'); }
+		function showKeypadFor(inp){ if(!USE_CUSTOM_KEYPAD) return; createKeypad(); const kp = document.querySelector('.num-keypad'); activeInput = inp; kp.classList.add('show'); }
 
 
 		function renderColumnarAddition(aStr, bStr){
