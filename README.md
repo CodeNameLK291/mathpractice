@@ -1,0 +1,28 @@
+# Math Practice
+
+간단한 웹 기반 수학 연습 프로그램입니다.
+
+## 설명
+- 이 프로젝트는 HTML, CSS, JavaScript로 작성된 작은 수학 연습 페이지입니다.
+- 주요 파일:
+  - `index.html` : 앱 진입점
+  - `app.js` : 간단한 동작 스크립트
+  - `styles.css` : 스타일
+
+## 사용법
+1. 로컬에서 파일을 열려면 브라우저로 `index.html`을 엽니다.
+2. 또는 간단한 HTTP 서버에서 제공하려면 (예: Python):
+
+```bash
+python3 -m http.server 8000
+# 브라우저에서 http://localhost:8000/ 를 엽니다.
+```
+
+## 목표
+- 초등 수준의 산수 연습용 예제 프로젝트
+
+## 라이선스
+MIT 라이선스(자유롭게 사용 및 수정 가능)
+
+---
+초기 커밋용 README

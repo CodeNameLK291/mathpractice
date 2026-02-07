@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ko">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<title>산수 연습 (Math Practice)</title>
+	<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+	<div class="container">
+		<header>
+			<h1>산수 문제 생성기</h1>
+		</header>
+
+		<section class="controls">
+			<div class="row">
+				<label>연산:</label>
+				<div class="ops">
+					<label><input type="checkbox" name="ops" value="add" id="op-add" checked> 덧셈 (+)</label>
+					<label><input type="checkbox" name="ops" value="sub" id="op-sub" checked> 뺄셈 (-)</label>
+					<label><input type="checkbox" name="ops" value="mul" id="op-mul" checked> 곱셈 (×)</label>
+					<label><input type="checkbox" name="ops" value="div" id="op-div"> 나눗셈 (÷, 정수)</label>
+				</div>
+				<label>최소값: <input id="min" type="number" value="1" /></label>
+				<label>최대값: <input id="max" type="number" value="10" /></label>
+				<label>문제 수: <input id="count" type="number" value="10" min="1" max="100" /></label>
+				<label style="display:flex;align-items:center;gap:6px"><input id="allow-negative" type="checkbox"> 음수 허용</label>
+				<label>문제 표시:
+					<select id="layout">
+						<option value="vertical">세로형</option>
+						<option value="horizontal">가로형</option>
+					</select>
+				</label>
+				<button id="start">시작</button>
+				<button id="show-all">모두보기</button>
+				<label style="display:flex;align-items:center;gap:6px"><input id="show-answers" type="checkbox"> 정답보기</label>
+				<button id="print-all">인쇄</button>
+				<label>인쇄 열:
+				  <select id="print-cols">
+				    <option value="1">1열</option>
+				    <option value="2" selected>2열</option>
+				    <option value="3">3열</option>
+				    <option value="4">4열</option>
+				  </select>
+				</label>
+			</div>
+		</section>
+
+		<section class="quiz" aria-live="polite">
+			<div id="status" class="status">준비됨</div>
+			<div id="question" class="question">시작 버튼을 눌러 주세요.</div>
+			<div class="answer-row">
+				<input id="answer" type="text" inputmode="numeric" autocomplete="off" />
+				<button id="submit">제출</button>
+				<button id="next" class="secondary">다음</button>
+			</div>
+			<div id="feedback" class="feedback"></div>
+		</section>
+
+		<section id="allQuestions" class="all-questions" style="display:none;margin-top:16px;">
+			<h2>모든 문제</h2>
+			<div id="allList"></div>
+		</section>
+
+		<section class="scoreboard">
+			<div>현재: <span id="current">0</span>/<span id="total">0</span></div>
+			<div>정답: <span id="correct">0</span></div>
+			<div>오답: <span id="wrong">0</span></div>
+		</section>
+
+		<footer>
+			<small>간단한 산수 연습 웹앱 — GitHub에 업로드하여 호스팅 가능</small>
+		</footer>
+	</div>
+
+	<script src="app.js"></script>
+</body>
+</html>

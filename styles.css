@@ -1,0 +1,119 @@
+:root{
+  --bg:#f7f9fc;
+  --card:#ffffff;
+  --accent:#2b6cb0;
+  --muted:#6b7280;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans KR",Arial;
+  background:var(--bg);
+  color:#111827;
+}
+.container{
+  max-width:720px;
+  margin:28px auto;
+  padding:20px;
+  background:var(--card);
+  border-radius:10px;
+  box-shadow:0 6px 18px rgba(15,23,42,0.08);
+}
+header h1{margin:0 0 12px;font-size:1.4rem}
+.controls .row{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  align-items:center;
+  margin-bottom:12px;
+}
+label{font-size:0.95rem;color:var(--muted)}
+select,input{padding:6px 8px;border:1px solid #e5e7eb;border-radius:6px}
+button{
+  background:var(--accent);
+  color:white;
+  border:none;
+  padding:8px 12px;
+  border-radius:6px;
+  cursor:pointer;
+}
+button.secondary{background:#6b7280}
+.quiz{margin:16px 0;padding:12px;border-radius:8px;background:#f8fafc}
+.status{font-size:0.9rem;color:var(--muted);margin-bottom:8px}
+.question{font-weight:600;font-size:1.2rem;margin-bottom:8px}
+.answer-row{display:flex;gap:8px;align-items:center}
+.answer-row input{flex:1;padding:10px;font-size:1rem}
+.feedback{margin-top:8px;font-size:0.95rem}
+.scoreboard{display:flex;gap:16px;justify-content:flex-start;margin-top:12px;color:var(--muted)}
+footer{margin-top:16px;font-size:0.8rem;color:var(--muted);text-align:center}
+@media(max-width:520px){
+  .controls .row{flex-direction:column;align-items:stretch}
+  .scoreboard{flex-direction:column}
+}
+/* 인쇄용: 모두보기 영역만 보이도록 */
+@media print {
+  body { background: #fff; color: #000; }
+  header, .controls, .quiz, .scoreboard, footer { display: none !important; }
+  .all-questions { display: block !important; }
+  .container { box-shadow: none; background: #fff; }
+}
+/* 모두보기: 레이아웃 스타일 */
+.all-questions .all-list-wrap ol.vertical { list-style: decimal; padding-left:1.2rem; }
+.all-questions .all-list-wrap ol.vertical li { display:block; margin:8px 0; }
+
+/* 모두보기: 그리드 기본 (항상 그리드) */
+.all-questions .all-list-wrap {
+  --cols: 2;
+  --print-cols: 1;
+}
+.all-questions .all-list-wrap ol.grid {
+  display:grid;
+  grid-template-columns: repeat(var(--cols), 1fr);
+  gap:12px;
+  list-style: none;
+  padding:0;
+  margin:0;
+}
+/* 각 항목: 번호 + 내용 */
+.all-questions .all-list-wrap ol.grid li {
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+  box-sizing:border-box;
+  padding:12px;
+  border-radius:6px;
+  background: #fff;
+  border:1px solid #eef2f7;
+  margin:0;
+}
+.all-questions .all-list-wrap ol.grid li .num {
+  width:2.4em;
+  flex:0 0 2.4em;
+  text-align:right;
+  padding-right:0.5rem;
+  font-weight:700;
+  color:var(--muted);
+}
+/* 내부 컨텐츠: 우측 정렬 */
+.all-questions .all-list-wrap ol.grid li .content { flex:1; min-width:0; }
+
+/* 세로형 문제: 숫자와 기호 분리. 숫자는 고정폭으로 오른쪽 정렬 */
+.all-questions .prob.vertical { font-family: "Courier New", monospace; display:flex; flex-direction:column; align-items:flex-end; gap:6px; padding:6px 2px; }
+.all-questions .prob.vertical .op-a { font-size:1.1rem; text-align:right; min-width:3ch; }
+.all-questions .prob.vertical .op-b { display:flex; align-items:baseline; justify-content:flex-end; gap:0.5rem; }
+.all-questions .prob.vertical .op-symbol { display:inline-block; /* operator to the left */ width:auto; padding-right:0.25rem; }
+.all-questions .prob.vertical .op-num { display:inline-block; min-width:3ch; text-align:right; font-size:1.1rem; font-weight:600; }
+
+/* 룰(밑줄) 너비는 content 너비에 맞춤 */
+.all-questions .prob.vertical .rule { width:100%; border-bottom:2px solid rgba(17,24,39,0.12); margin-top:4px; }
+
+/* 정답 텍스트 (가시성) */
+.all-questions .prob.vertical .ans { margin-top:6px; font-weight:700; color:var(--accent); }
+
+/* 인쇄에서도 동일 정렬 유지 */
+@media print {
+  .all-questions .all-list-wrap.vertical-mode ol.grid li .num { text-align:right; padding-right:0.5rem; }
+  .all-questions .prob.vertical .op-num { min-width:3ch; text-align:right; }
+  .all-questions .prob.vertical .rule { border-bottom-color:#000; border-bottom-width:1px; opacity:1; }
+  /* 기타 인쇄 관련 기존 규칙 */
+}
