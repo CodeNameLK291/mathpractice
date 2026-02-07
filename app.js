@@ -118,8 +118,16 @@ document.addEventListener('DOMContentLoaded', () => {
 			}
 			answerEl.value = '';
 			answerEl.disabled = false;
-			submitBtn.disabled = false;
-			nextBtn.disabled = true;
+			// Button rules: if not last question -> Next enabled, Submit disabled
+			// if last question -> Submit enabled, Next disabled
+			const lastIndex = Math.max(0, questions.length - 1);
+			if(idx < lastIndex){
+				submitBtn.disabled = true;
+				nextBtn.disabled = false;
+			} else {
+				submitBtn.disabled = false;
+				nextBtn.disabled = true;
+			}
 			feedbackEl.textContent = '';
 			answerEl.focus();
 			updateButtonStyles();
@@ -139,6 +147,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 		function submitAnswer(){
 			if(idx >= questions.length) return;
+			// If submit button is disabled, do nothing (we only allow submit on last question)
+			if(submitBtn && submitBtn.disabled) return;
 			const userRaw = answerEl.value.trim();
 			if(userRaw === '') { feedbackEl.textContent = '답을 입력해 주세요.'; return; }
 			const user = Number(userRaw);
@@ -151,6 +161,16 @@ document.addEventListener('DOMContentLoaded', () => {
 				feedbackEl.textContent = `오답. 정답: ${real}`;
 				stats.wrong++;
 			}
+			// If this was the last question, advance index to mark completion and render results
+			const lastIndex = Math.max(0, questions.length - 1);
+			if(idx === lastIndex){
+				// move beyond last to trigger finished state
+				idx = questions.length;
+				render();
+				updateButtonStyles();
+				return;
+			}
+			// For non-last (shouldn't happen due to disabled state), enable next
 			submitBtn.disabled = true;
 			nextBtn.disabled = false;
 			updateButtonStyles();
@@ -257,7 +277,10 @@ document.addEventListener('DOMContentLoaded', () => {
 			if(allSectionEl.style.display !== 'none' && cachedAllList) renderAll(cachedAllList, showAnswersChk.checked);
 		});
 		answerEl.addEventListener('keydown', (e) => {
-			if(e.key === 'Enter') submitAnswer();
+			if(e.key === 'Enter'){
+				if(submitBtn && !submitBtn.disabled) submitAnswer();
+				else if(nextBtn && !nextBtn.disabled) next();
+			}
 		});
 
 		// bind start button to begin the quiz
