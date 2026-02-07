@@ -112,16 +112,20 @@ document.addEventListener('DOMContentLoaded', () => {
 			statusEl.textContent = `문제 ${idx+1} / ${questions.length}`;
 			// render question differently when in interactive mode: default to vertical layout
 			if(activeMode === 'interactive'){
-				// always prefer vertical for interactive per user request
+				// prefer vertical for interactive; if multi-digit addition, render columnar digit boxes
 				const it = questions[idx];
 				const m = it.q.match(/^(.+)\s*([\+\-\×\÷])\s*(.+)$/);
 				if(m){
 					const a = m[1].trim(), op = m[2].trim(), b = m[3].trim();
-					questionEl.innerHTML = `<div class="prob vertical">
-						<div class="op-a">${a}</div>
-						<div class="op-b"><span class="op-symbol">${op}</span><span class="op-num">${b}</span></div>
-						<div class="rule"></div>
-					</div>`;
+					if(op === '+' && a.length >= 2 && b.length >= 1){
+						renderColumnarAddition(a, b);
+					} else {
+						questionEl.innerHTML = `<div class="prob vertical">
+							<div class="op-a">${a}</div>
+							<div class="op-b"><span class="op-symbol">${op}</span><span class="op-num">${b}</span></div>
+							<div class="rule"></div>
+						</div>`;
+					}
 				} else {
 					questionEl.textContent = questions[idx].q;
 				}
@@ -185,11 +189,27 @@ document.addEventListener('DOMContentLoaded', () => {
 			if(idx >= questions.length) return false;
 			// avoid double-evaluating the same question
 			if(answered[idx]) return true;
-			const userRaw = answerEl.value.trim();
-			if(userRaw === '') { feedbackEl.textContent = '답을 입력해 주세요.'; return false; }
-			const user = Number(userRaw);
-			const real = questions[idx].ans;
-			const isCorrect = Math.abs(user - real) < 1e-9;
+			// if columnar digit inputs present, read them
+			const colContainer = questionEl.querySelector('.digit-grid');
+			let user, real = questions[idx].ans, isCorrect;
+			if(colContainer){
+				// read answer digit inputs (data-pos from right)
+				const inputs = Array.from(colContainer.querySelectorAll('input[data-role="ans"]'));
+				if(inputs.length === 0) return false;
+				const digitsByPos = {};
+				inputs.forEach(inp => { digitsByPos[Number(inp.dataset.pos)] = inp.value.trim() || '0'; });
+				const maxPos = Math.max(...inputs.map(i => Number(i.dataset.pos)));
+				let s = '';
+				for(let p = maxPos; p >= 0; p--){ s += (digitsByPos[p] || '0'); }
+				user = Number(s);
+				if(isNaN(user)) { feedbackEl.textContent = '숫자를 입력해 주세요.'; return false; }
+				isCorrect = Math.abs(user - real) < 1e-9;
+			} else {
+				const userRaw = answerEl.value.trim();
+				if(userRaw === '') { feedbackEl.textContent = '답을 입력해 주세요.'; return false; }
+				user = Number(userRaw);
+				isCorrect = Math.abs(user - real) < 1e-9;
+			}
 			if(isCorrect){
 				feedbackEl.textContent = '정답!';
 				stats.correct++;
@@ -201,6 +221,46 @@ document.addEventListener('DOMContentLoaded', () => {
 			}
 			answered[idx] = true;
 			return true;
+		}
+
+		function renderColumnarAddition(aStr, bStr){
+			// digits as arrays
+			const aDigits = aStr.split('').map(d => d);
+			const bDigits = bStr.split('').map(d => d);
+			const maxLen = Math.max(aDigits.length, bDigits.length);
+			// build rows: carry (empty inputs), a row, b row (with +), rule, answer row (inputs)
+			let carryHtml = '<div class="digit-row digit-carry-row">';
+			for(let i=0;i<maxLen;i++) carryHtml += `<div class="digit-box"><input data-role="carry" data-pos="${i}" maxlength="1" inputmode="numeric" pattern="[0-9]" /></div>`;
+			carryHtml += '</div>';
+			let aHtml = '<div class="digit-row">';
+			for(let i=0;i<maxLen;i++){
+				const posFromRight = maxLen - 1 - i;
+				const d = aDigits[aDigits.length - maxLen + i] || '';
+				aHtml += `<div class="digit-box"><div class="op-num">${d}</div></div>`;
+			}
+			aHtml += '</div>';
+			let bHtml = '<div class="digit-row">';
+			// operator spacing: place + before leftmost boxes
+			bHtml += `<div class="op-symbol">+</div>`;
+			for(let i=0;i<maxLen;i++){
+				const d = bDigits[bDigits.length - maxLen + i] || '';
+				bHtml += `<div class="digit-box"><div class="op-num">${d}</div></div>`;
+			}
+			bHtml += '</div>';
+			const ruleHtml = '<div class="digit-rule"></div>';
+			let ansHtml = '<div class="digit-row answer-row">';
+			for(let i=0;i<maxLen;i++){
+				const pos = maxLen - 1 - i; // pos from right
+				ansHtml += `<div class="digit-box"><input data-role="ans" data-pos="${pos}" maxlength="1" inputmode="numeric" pattern="[0-9]" /></div>`;
+			}
+			ansHtml += '</div>';
+			questionEl.innerHTML = `<div class="digit-grid">${carryHtml}${aHtml}${bHtml}${ruleHtml}${ansHtml}</div>`;
+			// add simple input handlers: allow only digits
+			const inputs = questionEl.querySelectorAll('input[data-role]');
+			inputs.forEach(inp => {
+				inp.addEventListener('input', (e) => { e.target.value = e.target.value.replace(/[^0-9]/g,'').slice(-1); });
+				inp.addEventListener('focus', (e) => e.target.select());
+			});
 		}
 
 		function next(){
