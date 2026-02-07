@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		const statusEl = el('status');
 		const currentEl = el('current'), totalEl = el('total'), correctEl = el('correct'), wrongEl = el('wrong');
 		const allListEl = el('allList'), allSectionEl = el('allQuestions');
+		const wrongListEl = el('wrongList'), resultsSection = el('results');
 		const modeInteractiveBtn = el('mode-interactive'), modePrintBtn = el('mode-print');
 
 		function setMode(m){
@@ -45,6 +46,8 @@ document.addEventListener('DOMContentLoaded', () => {
 		}
 
 		let questions = [], idx = 0, stats = {correct:0, wrong:0};
+		let wrongList = [];
+		let answered = [];
 		let activeMode = 'interactive'; // 'interactive' | 'print'
 
 		function randInt(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
@@ -95,6 +98,15 @@ document.addEventListener('DOMContentLoaded', () => {
 				answerEl.disabled = true;
 				submitBtn.disabled = true;
 				nextBtn.disabled = true;
+				// show wrong list
+				if(resultsSection) resultsSection.style.display = '';
+				if(wrongListEl){
+					if(wrongList.length === 0) wrongListEl.innerHTML = '<div>(모든 문제 정답)</div>';
+					else {
+						const html = wrongList.map((w,i) => `<div class="wrong-item"><strong>${w.index}.</strong> ${w.q} — 당신: ${w.user} · 정답: ${w.real}</div>`).join('');
+						wrongListEl.innerHTML = html;
+					}
+				}
 				return;
 			}
 			statusEl.textContent = `문제 ${idx+1} / ${questions.length}`;
@@ -142,6 +154,9 @@ document.addEventListener('DOMContentLoaded', () => {
 			if(min > max) [min,max] = [max,min];
 			questions = generate(op, min, max, count);
 			idx = 0; stats = {correct:0, wrong:0};
+			wrongList = [];
+			answered = new Array(questions.length).fill(false);
+			if(resultsSection) resultsSection.style.display = 'none';
 			render();
 		}
 
@@ -168,6 +183,8 @@ document.addEventListener('DOMContentLoaded', () => {
 		// Evaluate current answer and update stats/feedback. Returns true if evaluated (non-empty answer), false otherwise.
 		function evaluateCurrentAnswer(){
 			if(idx >= questions.length) return false;
+			// avoid double-evaluating the same question
+			if(answered[idx]) return true;
 			const userRaw = answerEl.value.trim();
 			if(userRaw === '') { feedbackEl.textContent = '답을 입력해 주세요.'; return false; }
 			const user = Number(userRaw);
@@ -179,7 +196,10 @@ document.addEventListener('DOMContentLoaded', () => {
 			} else {
 				feedbackEl.textContent = `오답. 정답: ${real}`;
 				stats.wrong++;
+				// record wrong item
+				wrongList.push({ index: idx+1, q: questions[idx].q, user: user, real: real });
 			}
+			answered[idx] = true;
 			return true;
 		}
 
