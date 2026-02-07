@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			const printControls = document.querySelector('.controls.print-controls');
 			if(m === 'print'){
 				if(interactiveControls) interactiveControls.style.display = 'none';
-				if(printControls) printControls.style.display = '';
+				if(printControls) printControls.style.display = 'flex';
 				// hide the quiz UI (interactive) but keep all-questions visible
 				document.querySelector('.quiz').style.display = 'none';
 				document.querySelector('.scoreboard').style.display = 'none';
