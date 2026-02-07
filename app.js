@@ -147,10 +147,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
 		function submitAnswer(){
 			if(idx >= questions.length) return;
-			// If submit button is disabled, do nothing (we only allow submit on last question)
+			// If submit button is disabled, do nothing
 			if(submitBtn && submitBtn.disabled) return;
+			if(!evaluateCurrentAnswer()) return;
+			// If this was the last question, advance index to mark completion and render results
+			const lastIndex = Math.max(0, questions.length - 1);
+			if(idx === lastIndex){
+				idx = questions.length; // mark finished
+				render();
+				updateButtonStyles();
+				return;
+			}
+			// fallback: enable next and render
+			submitBtn.disabled = true;
+			nextBtn.disabled = false;
+			updateButtonStyles();
+			render();
+		}
+
+		// Evaluate current answer and update stats/feedback. Returns true if evaluated (non-empty answer), false otherwise.
+		function evaluateCurrentAnswer(){
+			if(idx >= questions.length) return false;
 			const userRaw = answerEl.value.trim();
-			if(userRaw === '') { feedbackEl.textContent = '답을 입력해 주세요.'; return; }
+			if(userRaw === '') { feedbackEl.textContent = '답을 입력해 주세요.'; return false; }
 			const user = Number(userRaw);
 			const real = questions[idx].ans;
 			const isCorrect = Math.abs(user - real) < 1e-9;
@@ -161,23 +180,13 @@ document.addEventListener('DOMContentLoaded', () => {
 				feedbackEl.textContent = `오답. 정답: ${real}`;
 				stats.wrong++;
 			}
-			// If this was the last question, advance index to mark completion and render results
-			const lastIndex = Math.max(0, questions.length - 1);
-			if(idx === lastIndex){
-				// move beyond last to trigger finished state
-				idx = questions.length;
-				render();
-				updateButtonStyles();
-				return;
-			}
-			// For non-last (shouldn't happen due to disabled state), enable next
-			submitBtn.disabled = true;
-			nextBtn.disabled = false;
-			updateButtonStyles();
-			render();
+			return true;
 		}
 
 		function next(){
+			// Evaluate current answer first; require an answer to advance
+			if(!evaluateCurrentAnswer()) return;
+			// advance to next question
 			idx++;
 			render();
 			updateButtonStyles();
