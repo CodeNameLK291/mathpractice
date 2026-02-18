@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
 		// 요소 참조
 		const el = id => document.getElementById(id);
 		const minEl = el('min'), maxEl = el('max'), countEl = el('count');
+		const difficultyEl = el('difficulty'), difficultyPrintEl = el('difficulty-print');
+		const labelMin = el('label-min'), labelMax = el('label-max');
 		const startBtn = el('start'), submitBtn = el('submit'), nextBtn = el('next');
 		const showAllBtn = el('show-all'), printBtn = el('print-all'), showAnswersChk = el('show-answers');
 		const printColsEl = el('print-cols');
@@ -60,6 +62,33 @@ document.addEventListener('DOMContentLoaded', () => {
 		let wrongList = [];
 		let answered = [];
 		let activeMode = 'interactive'; // 'interactive' | 'print'
+
+		// Difficulty presets
+		const difficultyPresets = {
+			easy: { min: 1, max: 10 },
+			medium: { min: 10, max: 100 },
+			hard: { min: 100, max: 1000 },
+			custom: null // user-defined
+		};
+
+		// Update min/max inputs based on difficulty selection
+		function updateDifficultyInputs(difficultyValue) {
+			const preset = difficultyPresets[difficultyValue];
+			if (preset) {
+				minEl.value = preset.min;
+				maxEl.value = preset.max;
+				minEl.disabled = true;
+				maxEl.disabled = true;
+				if (labelMin) labelMin.style.opacity = '0.5';
+				if (labelMax) labelMax.style.opacity = '0.5';
+			} else {
+				// custom mode
+				minEl.disabled = false;
+				maxEl.disabled = false;
+				if (labelMin) labelMin.style.opacity = '1';
+				if (labelMax) labelMax.style.opacity = '1';
+			}
+		}
 
 		function randInt(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
 
@@ -581,6 +610,24 @@ document.addEventListener('DOMContentLoaded', () => {
 		// bind submit/next buttons
 		if (submitBtn) submitBtn.addEventListener('click', submitAnswer);
 		if (nextBtn) nextBtn.addEventListener('click', next);
+
+		// Difficulty selector event handlers
+		if (difficultyEl) {
+			difficultyEl.addEventListener('change', (e) => {
+				updateDifficultyInputs(e.target.value);
+				// sync with print mode difficulty
+				if (difficultyPrintEl) difficultyPrintEl.value = e.target.value;
+			});
+			// Initialize on page load
+			updateDifficultyInputs(difficultyEl.value);
+		}
+		if (difficultyPrintEl) {
+			difficultyPrintEl.addEventListener('change', (e) => {
+				updateDifficultyInputs(e.target.value);
+				// sync with interactive mode difficulty
+				if (difficultyEl) difficultyEl.value = e.target.value;
+			});
+		}
 
 		// Guard: if key UI elements are missing, warn and stop to avoid silent no-op
 		if (!el('start') || !el('answer') || !el('question')) {
